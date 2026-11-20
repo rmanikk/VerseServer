@@ -1,0 +1,16 @@
+
+{
+  "name": "verseserver",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Music infrastructure and API platform for VerseHana",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:dashboard": "npm run dev --workspace=apps/dashboard",
+    "build": "npm run build --workspaces --if-present"
+  }
+}

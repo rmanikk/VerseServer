@@ -8,3 +8,374 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum ArtistStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum ArtistApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum SongStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum SongSource {
+  ADMIN_UPLOAD
+  ARTIST_SUBMISSION
+  IMPORT
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum AlbumStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ArtistCreditRole {
+  PRIMARY
+  FEATURED
+  REMIXER
+  PRODUCER
+}
+
+enum AudioAssetStatus {
+  UPLOADING
+  READY
+  FAILED
+  ARCHIVED
+}
+
+// ==========================================
+// ARTISTS
+// ==========================================
+
+model Artist {
+  id             String       @id @default(cuid())
+  name           String
+  slug           String       @unique
+  bio            String?      @db.Text
+
+  status         ArtistStatus @default(ACTIVE)
+
+  // External VerseHana user ID
+  ownerUserId    String?
+
+  avatarImageKey String?
+  coverImageKey  String?
+
+  songs          SongArtist[]
+  albums         AlbumArtist[]
+
+  genres         Genre[] @relation("ArtistGenres")
+  moods          Mood[]  @relation("ArtistMoods")
+
+  applications   ArtistApplication[] @relation("ApprovedArtistApplications")
+  submissions    SongSubmission[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+  @@index([ownerUserId])
+}
+
+// ==========================================
+// ARTIST APPLICATIONS
+// ==========================================
+
+model ArtistApplication {
+  id               String                  @id @default(cuid())
+
+  applicantUserId  String
+  proposedName     String
+  bio              String?                 @db.Text
+
+  status           ArtistApplicationStatus @default(PENDING)
+
+  reviewNotes      String?                 @db.Text
+  reviewedByAdminId String?
+  reviewedByAdmin   Admin? @relation("ArtistApplicationReviewer", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+  reviewedAt       DateTime?
+
+  approvedArtistId String?
+  approvedArtist   Artist? @relation("ApprovedArtistApplications", fields: [approvedArtistId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([applicantUserId, status])
+  @@index([status, createdAt])
+}
+
+// ==========================================
+// ALBUMS
+// ==========================================
+
+model Album {
+  id            String      @id @default(cuid())
+
+  title         String
+  slug          String      @unique
+  description   String?     @db.Text
+
+  releaseDate   DateTime?
+  coverImageKey String?
+
+  status        AlbumStatus @default(DRAFT)
+
+  artists       AlbumArtist[]
+  songs         Song[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ==========================================
+// SONGS
+// ==========================================
+
+model Song {
+  id              String     @id @default(cuid())
+
+  title           String
+  slug            String     @unique
+  description     String?    @db.Text
+
+  durationSeconds Int?
+  releaseDate     DateTime?
+  language        String?
+  isExplicit      Boolean    @default(false)
+
+  status          SongStatus @default(DRAFT)
+  source          SongSource @default(ADMIN_UPLOAD)
+
+  coverImageKey   String?
+
+  albumId         String?
+  album           Album? @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  artists         SongArtist[]
+  genres          Genre[]    @relation("SongGenres")
+  moods           Mood[]     @relation("SongMoods")
+
+  audioAssets     AudioAsset[]
+  submissions     SongSubmission[]
+
+  createdByUserId String?
+  updatedByUserId String?
+
+  publishedAt     DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([albumId])
+  @@index([releaseDate])
+}
+
+// ==========================================
+// SONG ARTISTS
+// ==========================================
+
+model SongArtist {
+  id       String           @id @default(cuid())
+
+  songId   String
+  artistId String
+
+  role     ArtistCreditRole @default(PRIMARY)
+  position Int              @default(0)
+
+  song     Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([songId, artistId])
+  @@index([artistId])
+}
+
+// ==========================================
+// ALBUM ARTISTS
+// ==========================================
+
+model AlbumArtist {
+  id       String           @id @default(cuid())
+
+  albumId  String
+  artistId String
+
+  role     ArtistCreditRole @default(PRIMARY)
+
+  album    Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([albumId, artistId])
+  @@index([artistId])
+}
+
+// ==========================================
+// GENRES
+// ==========================================
+
+model Genre {
+  id          String  @id @default(cuid())
+
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  songs       Song[]   @relation("SongGenres")
+  artists     Artist[] @relation("ArtistGenres")
+
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// MOODS
+// ==========================================
+
+model Mood {
+  id          String  @id @default(cuid())
+
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  songs       Song[]   @relation("SongMoods")
+  artists     Artist[] @relation("ArtistMoods")
+
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// AUDIO ASSETS
+// ==========================================
+
+model AudioAsset {
+  id               String           @id @default(cuid())
+
+  songId           String
+  song             Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  storageProvider  String           @default("b2")
+  bucketName       String
+  objectKey        String           @unique
+
+  originalFilename String
+  contentType      String
+  fileSizeBytes    BigInt
+
+  codec            String?
+  bitrateKbps      Int?
+  sampleRateHz     Int?
+  channels         Int?
+  durationSeconds  Int?
+
+  versionLabel     String?
+  isDefault        Boolean          @default(false)
+
+  status           AudioAssetStatus @default(UPLOADING)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([songId, status])
+}
+
+// ==========================================
+// SONG SUBMISSIONS
+// ==========================================
+
+model SongSubmission {
+  id                String           @id @default(cuid())
+
+  songId            String
+  song              Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  artistId          String
+  artist            Artist @relation(fields: [artistId], references: [id], onDelete: Restrict)
+
+  submittedByUserId String
+
+  // Artist confirms distribution rights.
+  rightsConfirmed   Boolean          @default(false)
+  rightsConfirmedAt DateTime?
+  rightsDeclarationVersion String?
+
+  status            SubmissionStatus @default(PENDING)
+
+  reviewNotes       String?          @db.Text
+  reviewedByAdminId String?
+  reviewedByAdmin   Admin? @relation("SongSubmissionReviewer", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+  reviewedAt        DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([submittedByUserId])
+  @@index([artistId, status])
+}
+
+// ==========================================
+// ADMIN ACTIVITY LOG
+// ==========================================
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+
+  actorUserId String
+  actorRole   String
+
+  action      String
+  entityType  String
+  entityId    String?
+
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId])
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+
+  reviewedArtistApplications ArtistApplication[] @relation("ArtistApplicationReviewer")
+  reviewedSongSubmissions    SongSubmission[]    @relation("SongSubmissionReviewer")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}

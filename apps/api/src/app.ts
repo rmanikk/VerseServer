@@ -4,6 +4,8 @@ import cors from "cors";
 import helmet from "helmet";
 
 import healthRoutes from "./routes/health.routes.js";
+import artistRoutes from "./modules/artists/artist.routes.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 
@@ -15,16 +17,18 @@ app.get("/", (_req, res) => {
   res.json({
     success: true,
     message: "Welcome to VerseServer API",
-    version: "1.0.0"
+    version: "1.0.0",
   });
 });
 
 app.use("/api/v1/health", healthRoutes);
+app.use("/api/v1/artists", artistRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({
     success: false,
-    message: "API endpoint not found"
+    message: "API endpoint not found",
   });
 });
 

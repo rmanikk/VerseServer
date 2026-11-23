@@ -364,11 +364,19 @@ model SongRequest {
 
   requestedTitle   String
   requestedArtist  String?
+
+  // YouTube URL submitted by the user
+  youtubeUrl       String
+
   message          String?            @db.Text
 
   status           SongRequestStatus  @default(PENDING)
 
-  reviewNotes      String?            @db.Text
+  // Private notes for VerseServer administrators
+adminNotes String? @db.Text
+
+// Message that can be displayed to the requesting user
+responseMessage String? @db.Text
 
   reviewedByAdminId String?
   reviewedByAdmin   Admin? @relation("SongRequestReviewer", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
@@ -422,8 +430,8 @@ model Admin {
   lastLoginAt  DateTime?
 
   reviewedArtistApplications ArtistApplication[] @relation("ArtistApplicationReviewer")
-  reviewedSongSubmissions     SongSubmission[]    @relation("SongSubmissionReviewer")
-  reviewedSongRequests        SongRequest[]      @relation("SongRequestReviewer")
+  reviewedSongSubmissions    SongSubmission[]    @relation("SongSubmissionReviewer")
+  reviewedSongRequests       SongRequest[]       @relation("SongRequestReviewer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

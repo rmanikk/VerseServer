@@ -6,6 +6,7 @@ import helmet from "helmet";
 import healthRoutes from "./routes/health.routes.js";
 import artistRoutes from "./modules/artists/artist.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import songRequestRoutes from "./modules/song-requests/song-request.routes.js";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get("/", (_req, res) => {
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/artists", artistRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/song-requests", songRequestRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({

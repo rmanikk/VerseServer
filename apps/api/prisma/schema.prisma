@@ -67,6 +67,14 @@ enum AudioAssetStatus {
   ARCHIVED
 }
 
+enum SongRequestStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+  FULFILLED
+}
+
 // ==========================================
 // ARTISTS
 // ==========================================
@@ -106,24 +114,24 @@ model Artist {
 // ==========================================
 
 model ArtistApplication {
-  id               String                  @id @default(cuid())
+  id                String                  @id @default(cuid())
 
-  applicantUserId  String
-  proposedName     String
-  bio              String?                 @db.Text
+  applicantUserId   String
+  proposedName      String
+  bio               String?                 @db.Text
 
-  status           ArtistApplicationStatus @default(PENDING)
+  status            ArtistApplicationStatus @default(PENDING)
 
-  reviewNotes      String?                 @db.Text
+  reviewNotes       String?                 @db.Text
   reviewedByAdminId String?
   reviewedByAdmin   Admin? @relation("ArtistApplicationReviewer", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
-  reviewedAt       DateTime?
+  reviewedAt        DateTime?
 
-  approvedArtistId String?
-  approvedArtist   Artist? @relation("ApprovedArtistApplications", fields: [approvedArtistId], references: [id], onDelete: SetNull)
+  approvedArtistId  String?
+  approvedArtist    Artist? @relation("ApprovedArtistApplications", fields: [approvedArtistId], references: [id], onDelete: SetNull)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([applicantUserId, status])
   @@index([status, createdAt])
@@ -184,6 +192,9 @@ model Song {
 
   audioAssets     AudioAsset[]
   submissions     SongSubmission[]
+
+  // Song requests fulfilled by this song
+  fulfilledRequests SongRequest[] @relation("FulfilledSongRequests")
 
   createdByUserId String?
   updatedByUserId String?
@@ -342,6 +353,41 @@ model SongSubmission {
 }
 
 // ==========================================
+// SONG REQUESTS
+// ==========================================
+
+model SongRequest {
+  id               String            @id @default(cuid())
+
+  // External VerseHana user ID
+  requesterUserId  String
+
+  requestedTitle   String
+  requestedArtist  String?
+  message          String?            @db.Text
+
+  status           SongRequestStatus  @default(PENDING)
+
+  reviewNotes      String?            @db.Text
+
+  reviewedByAdminId String?
+  reviewedByAdmin   Admin? @relation("SongRequestReviewer", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+
+  // Optional link to the song that fulfilled this request
+  fulfilledSongId  String?
+  fulfilledSong    Song? @relation("FulfilledSongRequests", fields: [fulfilledSongId], references: [id], onDelete: SetNull)
+
+  reviewedAt       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([requesterUserId, createdAt])
+  @@index([status, createdAt])
+  @@index([reviewedByAdminId])
+  @@index([fulfilledSongId])
+}
+
+// ==========================================
 // ADMIN ACTIVITY LOG
 // ==========================================
 
@@ -363,6 +409,10 @@ model ActivityLog {
   @@index([entityType, entityId])
 }
 
+// ==========================================
+// VERSESERVER ADMIN
+// ==========================================
+
 model Admin {
   id           String   @id @default(cuid())
   name         String
@@ -372,7 +422,8 @@ model Admin {
   lastLoginAt  DateTime?
 
   reviewedArtistApplications ArtistApplication[] @relation("ArtistApplicationReviewer")
-  reviewedSongSubmissions    SongSubmission[]    @relation("SongSubmissionReviewer")
+  reviewedSongSubmissions     SongSubmission[]    @relation("SongSubmissionReviewer")
+  reviewedSongRequests        SongRequest[]      @relation("SongRequestReviewer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

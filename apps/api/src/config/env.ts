@@ -11,6 +11,11 @@ const envSchema = z.object({
   // VerseServer admin authentication
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().default("15m"),
+
+  // VerseHana server-to-server authentication
+  VERSEHANA_SERVICE_SECRET: z
+    .string()
+    .min(64, "VERSEHANA_SERVICE_SECRET must be at least 64 characters"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

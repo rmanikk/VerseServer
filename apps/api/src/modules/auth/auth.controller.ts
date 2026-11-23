@@ -3,6 +3,8 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 
 import { prisma } from "../../lib/prisma.js";
+import type { AdminRequest } from "../../middleware/admin-auth.middleware.js";
+
 import {
   createAdminAccessToken,
   verifyPassword,
@@ -82,4 +84,23 @@ export async function adminLogin(req: Request, res: Response) {
       message: "Unable to process admin login.",
     });
   }
+}
+
+export async function getAdminProfile(
+  req: AdminRequest,
+  res: Response
+) {
+  if (!req.admin) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required.",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      admin: req.admin,
+    },
+  });
 }

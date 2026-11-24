@@ -4,7 +4,9 @@ import {
   HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3";
+
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { env } from "../config/env.js";
@@ -44,6 +46,29 @@ export async function createB2UploadUrl({
     Key: objectKey,
     ContentType: contentType,
     ContentLength: contentLengthBytes,
+  });
+
+  return getSignedUrl(b2Client, command, {
+    expiresIn: expiresInSeconds,
+  });
+}
+
+interface CreateDownloadUrlInput {
+  objectKey: string;
+  contentType: string;
+  expiresInSeconds?: number;
+}
+
+export async function createB2DownloadUrl({
+  objectKey,
+  contentType,
+  expiresInSeconds = 300,
+}: CreateDownloadUrlInput): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: env.B2_BUCKET_NAME,
+    Key: objectKey,
+    ResponseContentType: contentType,
+    ResponseContentDisposition: "inline",
   });
 
   return getSignedUrl(b2Client, command, {

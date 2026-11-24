@@ -1,6 +1,22 @@
 
 import { prisma } from "../../lib/prisma.js";
 
+const publicSongWhere = {
+  status: "APPROVED" as const,
+  publishedAt: {
+    not: null,
+  },
+  audioAssets: {
+    some: {
+      status: "READY" as const,
+    },
+  },
+};
+
+const publicAlbumWhere = {
+  status: "PUBLISHED" as const,
+};
+
 export async function getArtists() {
   return prisma.artist.findMany({
     where: {
@@ -13,6 +29,7 @@ export async function getArtists() {
       bio: true,
       avatarImageKey: true,
       coverImageKey: true,
+
       genres: {
         select: {
           id: true,
@@ -20,6 +37,7 @@ export async function getArtists() {
           slug: true,
         },
       },
+
       moods: {
         select: {
           id: true,
@@ -27,13 +45,23 @@ export async function getArtists() {
           slug: true,
         },
       },
+
       _count: {
         select: {
-          songs: true,
-          albums: true,
+          songs: {
+            where: {
+              song: publicSongWhere,
+            },
+          },
+          albums: {
+            where: {
+              album: publicAlbumWhere,
+            },
+          },
         },
       },
     },
+
     orderBy: {
       name: "asc",
     },
@@ -46,6 +74,7 @@ export async function getArtistBySlug(slug: string) {
       slug,
       status: "ACTIVE",
     },
+
     select: {
       id: true,
       name: true,
@@ -53,6 +82,7 @@ export async function getArtistBySlug(slug: string) {
       bio: true,
       avatarImageKey: true,
       coverImageKey: true,
+
       genres: {
         select: {
           id: true,
@@ -60,6 +90,7 @@ export async function getArtistBySlug(slug: string) {
           slug: true,
         },
       },
+
       moods: {
         select: {
           id: true,
@@ -67,14 +98,16 @@ export async function getArtistBySlug(slug: string) {
           slug: true,
         },
       },
+
       songs: {
         where: {
-          song: {
-            status: "APPROVED",
-          },
+          song: publicSongWhere,
         },
+
         select: {
           role: true,
+          position: true,
+
           song: {
             select: {
               id: true,
@@ -82,21 +115,24 @@ export async function getArtistBySlug(slug: string) {
               slug: true,
               durationSeconds: true,
               coverImageKey: true,
+              publishedAt: true,
             },
           },
         },
+
         orderBy: {
           position: "asc",
         },
       },
+
       albums: {
         where: {
-          album: {
-            status: "PUBLISHED",
-          },
+          album: publicAlbumWhere,
         },
+
         select: {
           role: true,
+
           album: {
             select: {
               id: true,

@@ -83,6 +83,8 @@ export const confirmAudioUploadSchema = z
 
 export const submitSongForReviewSchema = z
   .object({
+    submittedByUserId: z.string().trim().min(1).max(128),
+
     rightsConfirmed: z.literal(true, {
       error: "You must confirm that you have the necessary distribution rights.",
     }),

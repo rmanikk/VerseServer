@@ -5,16 +5,27 @@ import {
   createSongDraftSchema,
   createAudioUploadUrlSchema,
   confirmAudioUploadSchema,
+  submitSongForReviewSchema,
 } from "./song-submission.schema.js";
 
-import { createSongDraft } from "./song-submission.service.js";
+import {
+  createSongDraft,
+  submitSongForReview,
+} from "./song-submission.service.js";
 
 import {
   createSongAudioUpload,
   confirmSongAudioUpload,
 } from "./song-upload.service.js";
 
-export async function createSongDraftController(req: Request, res: Response) {
+// ==========================================
+// CREATE SONG DRAFT
+// ==========================================
+
+export async function createSongDraftController(
+  req: Request,
+  res: Response,
+) {
   const parsed = createSongDraftSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -56,6 +67,10 @@ export async function createSongDraftController(req: Request, res: Response) {
     });
   }
 }
+
+// ==========================================
+// CREATE AUDIO UPLOAD URL
+// ==========================================
 
 export async function createAudioUploadUrlController(
   req: Request,
@@ -107,6 +122,10 @@ export async function createAudioUploadUrlController(
   }
 }
 
+// ==========================================
+// CONFIRM AUDIO UPLOAD
+// ==========================================
+
 export async function confirmAudioUploadController(
   req: Request,
   res: Response,
@@ -122,8 +141,8 @@ export async function confirmAudioUploadController(
   }
 
   const audioAssetId = Array.isArray(req.params.audioAssetId)
-  ? req.params.audioAssetId[0]
-  : req.params.audioAssetId;
+    ? req.params.audioAssetId[0]
+    : req.params.audioAssetId;
 
   if (!audioAssetId) {
     return res.status(400).json({
@@ -169,6 +188,76 @@ export async function confirmAudioUploadController(
     return res.status(500).json({
       success: false,
       message: "Unable to confirm audio upload.",
+    });
+  }
+}
+
+// ==========================================
+// SUBMIT SONG FOR ADMIN REVIEW
+// ==========================================
+
+export async function submitSongForReviewController(
+  req: Request,
+  res: Response,
+) {
+  const parsed = submitSongForReviewSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid song submission details.",
+      errors: parsed.error.flatten(),
+    });
+  }
+
+  const songId = Array.isArray(req.params.songId)
+    ? req.params.songId[0]
+    : req.params.songId;
+
+  if (!songId) {
+    return res.status(400).json({
+      success: false,
+      message: "Song ID is required.",
+    });
+  }
+
+  try {
+    const submission = await submitSongForReview(
+      songId,
+      parsed.data,
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Song submitted for admin review successfully.",
+      data: submission,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected error.";
+
+    console.error("Song submission failed:", error);
+
+    if (message.includes("permission")) {
+      return res.status(403).json({ success: false, message });
+    }
+
+    if (message.includes("not found")) {
+      return res.status(404).json({ success: false, message });
+    }
+
+    if (
+      message.includes("Only draft songs") ||
+      message.includes("at least one") ||
+      message.includes("Multiple primary") ||
+      message.includes("status changed")
+    ) {
+      return res.status(409).json({ success: false, message });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to submit song for review.",
     });
   }
 }

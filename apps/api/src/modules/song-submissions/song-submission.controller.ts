@@ -6,11 +6,16 @@ import {
   createAudioUploadUrlSchema,
   confirmAudioUploadSchema,
   submitSongForReviewSchema,
+  listSongSubmissionsSchema,
+  reviewSongSubmissionSchema,
 } from "./song-submission.schema.js";
 
 import {
   createSongDraft,
   submitSongForReview,
+  listSongSubmissions,
+  getSongSubmissionById,
+  reviewSongSubmission,
 } from "./song-submission.service.js";
 
 import {
@@ -258,6 +263,166 @@ export async function submitSongForReviewController(
     return res.status(500).json({
       success: false,
       message: "Unable to submit song for review.",
+    });
+  }
+}
+
+// ==========================================
+// ADMIN: LIST SONG SUBMISSIONS
+// ==========================================
+
+export async function listSongSubmissionsController(
+  req: Request,
+  res: Response,
+) {
+  const parsed = listSongSubmissionsSchema.safeParse(req.query);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid song submission filters.",
+      errors: parsed.error.flatten(),
+    });
+  }
+
+  try {
+    const result = await listSongSubmissions(parsed.data);
+
+    return res.status(200).json({
+      success: true,
+      message: "Song submissions retrieved successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Song submission listing failed:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve song submissions.",
+    });
+  }
+}
+
+// ==========================================
+// ADMIN: GET SONG SUBMISSION DETAILS
+// ==========================================
+
+export async function getSongSubmissionController(
+  req: Request,
+  res: Response,
+) {
+  const submissionId = Array.isArray(req.params.submissionId)
+    ? req.params.submissionId[0]
+    : req.params.submissionId;
+
+  if (!submissionId) {
+    return res.status(400).json({
+      success: false,
+      message: "Submission ID is required.",
+    });
+  }
+
+  try {
+    const submission = await getSongSubmissionById(submissionId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Song submission retrieved successfully.",
+      data: submission,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected error.";
+
+    console.error("Song submission retrieval failed:", error);
+
+    if (message.includes("not found")) {
+      return res.status(404).json({ success: false, message });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve song submission.",
+    });
+  }
+}
+
+// ==========================================
+// ADMIN: REVIEW SONG SUBMISSION
+// ==========================================
+
+export async function reviewSongSubmissionController(
+  req: Request,
+  res: Response,
+) {
+  const parsed = reviewSongSubmissionSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid song review details.",
+      errors: parsed.error.flatten(),
+    });
+  }
+
+  const submissionId = Array.isArray(req.params.submissionId)
+    ? req.params.submissionId[0]
+    : req.params.submissionId;
+
+  if (!submissionId) {
+    return res.status(400).json({
+      success: false,
+      message: "Submission ID is required.",
+    });
+  }
+
+  const adminId = req.admin?.id;
+
+  if (!adminId) {
+    return res.status(401).json({
+      success: false,
+      message: "Admin authentication is required.",
+    });
+  }
+
+  try {
+    const submission = await reviewSongSubmission(
+      submissionId,
+      adminId,
+      parsed.data,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        parsed.data.action === "APPROVE"
+          ? "Song submission approved and added to the catalogue successfully."
+          : "Song submission rejected successfully.",
+      data: submission,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected error.";
+
+    console.error("Song submission review failed:", error);
+
+    if (message.includes("not found")) {
+      return res.status(404).json({ success: false, message });
+    }
+
+    if (
+      message.includes("already been reviewed") ||
+      message.includes("valid state") ||
+      message.includes("without a rights declaration") ||
+      message.includes("without a ready audio asset") ||
+      message.includes("status changed")
+    ) {
+      return res.status(409).json({ success: false, message });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to review song submission.",
     });
   }
 }

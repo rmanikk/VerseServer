@@ -96,3 +96,44 @@ export const submitSongForReviewSchema = z
       .max(50),
   })
   .strict();
+
+// ==========================================
+// ADMIN: LIST SONG SUBMISSIONS
+// ==========================================
+
+export const listSongSubmissionsSchema = z
+  .object({
+    status: z
+      .enum(["PENDING", "APPROVED", "REJECTED", "WITHDRAWN"])
+      .optional(),
+
+    page: z.coerce.number().int().min(1).default(1),
+
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .strict();
+
+// ==========================================
+// ADMIN: REVIEW SONG SUBMISSION
+// ==========================================
+
+export const reviewSongSubmissionSchema = z
+  .object({
+    action: z.enum(["APPROVE", "REJECT"]),
+
+    reviewNotes: z
+      .string()
+      .trim()
+      .max(3000, "Review notes cannot exceed 3000 characters.")
+      .optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.action === "REJECT" && !data.reviewNotes) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["reviewNotes"],
+        message: "Review notes are required when rejecting a submission.",
+      });
+    }
+  });

@@ -8,6 +8,7 @@ import artistRoutes from "./modules/artists/artist.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import songRequestRoutes from "./modules/song-requests/song-request.routes.js";
 import artistApplicationRoutes from "./modules/artist-applications/artist-application.routes.js";
+import songSubmissionRoutes from "./modules/song-submissions/song-submission.routes.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/v1/artists", artistRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/song-requests", songRequestRoutes);
 app.use("/api/v1/artist-applications", artistApplicationRoutes);
+app.use("/api/v1/song-submissions", songSubmissionRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({

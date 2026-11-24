@@ -16,6 +16,13 @@ const envSchema = z.object({
   VERSEHANA_SERVICE_SECRET: z
     .string()
     .min(64, "VERSEHANA_SERVICE_SECRET must be at least 64 characters"),
+
+  // Backblaze B2 storage (S3-compatible API)
+  B2_ENDPOINT: z.string().url("B2_ENDPOINT must be a valid URL"),
+  B2_REGION: z.string().min(1, "B2_REGION is required"),
+  B2_BUCKET_NAME: z.string().min(1, "B2_BUCKET_NAME is required"),
+  B2_ACCESS_KEY_ID: z.string().min(1, "B2_ACCESS_KEY_ID is required"),
+  B2_SECRET_ACCESS_KEY: z.string().min(1, "B2_SECRET_ACCESS_KEY is required"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

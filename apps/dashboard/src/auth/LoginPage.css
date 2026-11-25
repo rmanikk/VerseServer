@@ -1,0 +1,265 @@
+
+.login-screen {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+  background: #090d14;
+}
+
+.login-background-glow {
+  width: 500px;
+  height: 500px;
+  position: absolute;
+  top: -250px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #35c9bc12;
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  z-index: 1;
+  padding: 36px;
+  border: 1px solid #243342;
+  border-radius: 14px;
+  background: #0e1621;
+  box-shadow: 0 25px 80px #0005;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 42px;
+}
+
+.login-brand-icon {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #071817;
+  background: #35c9bc;
+}
+
+.login-brand h1 {
+  margin: 0;
+  color: #f1f5f9;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.login-brand span {
+  display: block;
+  margin-top: 4px;
+  color: #7e8da0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.login-heading {
+  margin-bottom: 28px;
+}
+
+.login-lock-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border: 1px solid #29413f;
+  border-radius: 10px;
+  color: #35c9bc;
+  background: #16302e;
+}
+
+.login-heading h2 {
+  margin: 0;
+  color: #f1f5f9;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.login-heading p {
+  margin-top: 9px;
+  color: #8290a2;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-form label {
+  margin-top: 9px;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.login-form input {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  outline: none;
+  border: 1px solid #29394a;
+  border-radius: 7px;
+  color: #f1f5f9;
+  background: #111c29;
+  font-size: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.login-form input::placeholder {
+  color: #66768a;
+}
+
+.login-form input:focus {
+  border-color: #35c9bc;
+}
+
+.login-form button {
+  height: 45px;
+  margin-top: 14px;
+  border: 1px solid #35c9bc;
+  border-radius: 7px;
+  color: #071817;
+  background: #35c9bc;
+  font-size: 12px;
+  font-weight: 750;
+  transition: 0.2s ease;
+}
+
+.login-form button:hover:not(:disabled) {
+  background: #63ded3;
+}
+
+.login-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.login-error {
+  padding: 10px 12px;
+  border: 1px solid #743c43;
+  border-radius: 7px;
+  color: #ffaaaa;
+  background: #351b24;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.login-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 25px;
+  color: #82978f;
+  font-size: 10px;
+}
+
+.login-security svg {
+  color: #35c9bc;
+}
+
+.login-footer {
+  position: absolute;
+  bottom: 22px;
+  color: #637185;
+  font-size: 10px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 25px 20px;
+  }
+}
+
+/* Login UI size improvements */
+
+.login-card {
+  max-width: 480px;
+  padding: 42px;
+}
+
+.login-brand {
+  gap: 15px;
+  margin-bottom: 48px;
+}
+
+.login-brand-icon {
+  width: 49px;
+  height: 49px;
+}
+
+.login-brand h1 {
+  font-size: 21px;
+}
+
+.login-brand span {
+  font-size: 10px;
+}
+
+.login-heading h2 {
+  font-size: 29px;
+}
+
+.login-heading p {
+  font-size: 14px;
+}
+
+.login-lock-icon {
+  width: 47px;
+  height: 47px;
+}
+
+.login-form {
+  gap: 12px;
+}
+
+.login-form label {
+  font-size: 13px;
+}
+
+.login-form input {
+  height: 49px;
+  padding: 0 15px;
+  font-size: 14px;
+}
+
+.login-form button {
+  height: 50px;
+  font-size: 14px;
+}
+
+.login-security {
+  font-size: 12px;
+  margin-top: 28px;
+}
+
+.login-footer {
+  font-size: 11px;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 22px;
+  }
+}
